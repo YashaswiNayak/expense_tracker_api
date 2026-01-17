@@ -1,0 +1,21 @@
+package com.yashaswi.expense_tracker_api.enums;
+
+public enum ExpenseCategory {
+    HOUSING,
+    UTILITIES,
+    GROCERIES,
+    DINING_OUT,
+    TRANSPORTATION,
+    HEALTHCARE,
+    PERSONAL_CARE,
+    CLOTHING,
+    EDUCATION,
+    ENTERTAINMENT,
+    SUBSCRIPTIONS,
+    EMI_LOANS,
+    FAMILY_CHILDREN,
+    GIFTS_DONATIONS,
+    INVESTMENTS_SAVINGS,
+    PET_CARE,
+    MISCELLANEOUS
+}
