@@ -1,18 +1,34 @@
 package com.yashaswi.expense_tracker_api.repository;
 
+import com.yashaswi.expense_tracker_api.dto.ExpenseSummaryDto;
 import com.yashaswi.expense_tracker_api.entity.Expense;
-import com.yashaswi.expense_tracker_api.enums.ExpenseCategory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDate;
+import java.util.List;
 
 public interface ExpenseRepository extends JpaRepository<Expense, Integer>, JpaSpecificationExecutor<Expense> {
-    Page<Expense> findByUser_Username(String username, Pageable pageable);
 
-    Page<Expense> findByUser_UsernameAndDateBetween(String username, LocalDate start, LocalDate end, Pageable pageable);
+    @Query("""
+            SELECT new com.yashaswi.expense_tracker_api.dto.ExpenseSummaryDto(
+                e.category, 
+                SUM(e.amount), 
+                COUNT(e), 
+                AVG(e.amount)
+            )
+            FROM Expense e 
+            WHERE e.user.username = :username 
+              AND (:year IS NULL OR YEAR(e.date) = :year)
+              AND (:month IS NULL OR MONTH(e.date) = :month)
+            GROUP BY e.category
+            ORDER BY SUM(e.amount) DESC
+            """)
+    List<ExpenseSummaryDto> getMonthlySummary(
+            @Param("username") String username,
+            @Param("year") Integer year,
+            @Param("month") Integer month
+    );
 
-    Page<Expense> findByUser_UsernameAndExpenseCategory(String username, ExpenseCategory expenseCategory, Pageable pageable);
 }

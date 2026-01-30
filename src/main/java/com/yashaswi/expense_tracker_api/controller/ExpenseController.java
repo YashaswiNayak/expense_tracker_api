@@ -2,6 +2,7 @@ package com.yashaswi.expense_tracker_api.controller;
 
 import com.yashaswi.expense_tracker_api.dto.ExpenseCreation;
 import com.yashaswi.expense_tracker_api.dto.ExpenseResponse;
+import com.yashaswi.expense_tracker_api.dto.ExpenseSummaryDto;
 import com.yashaswi.expense_tracker_api.dto.ExpenseUpdateRequest;
 import com.yashaswi.expense_tracker_api.enums.DateRange;
 import com.yashaswi.expense_tracker_api.enums.ExpenseCategory;
@@ -20,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/expenses")
@@ -39,6 +41,7 @@ public class ExpenseController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    //____________________________________________________________________________________
     @GetMapping
     public ResponseEntity<Page<ExpenseResponse>> getAllExpenses(
             @PageableDefault(
@@ -61,16 +64,36 @@ public class ExpenseController {
 
     ) {
         Page<ExpenseResponse> expenses =
-                expenseService.getAllExpenses(userDetails.getUsername(), pageable, startDate, endDate, dateRange,expenseCategory);
+                expenseService.getAllExpenses(userDetails.getUsername(), pageable, startDate, endDate, dateRange, expenseCategory);
 
         return ResponseEntity.ok(expenses);
     }
 
+    @GetMapping("/summary")
+    public ResponseEntity<List<ExpenseSummaryDto>> getSummary(
+            @PageableDefault(
+                    page = 0,
+                    size = 10,
+                    sort = "date",
+                    direction = Sort.Direction.DESC
+            ) Pageable pageable,
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(required = false)
+            Integer year,
+            @RequestParam(required = false)
+            Integer month
+    ) {
+        return ResponseEntity.ok(expenseService.getSummary(userDetails.getUsername(), year, month));
+
+    }
+
+    //____________________________________________________________________________________
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteExpense(@PathVariable Integer id) {
         return ResponseEntity.ok(expenseService.deleteExpense(id));
     }
 
+    //____________________________________________________________________________________
     @PutMapping("/{id}")
     public ResponseEntity<ExpenseResponse> updateExpense(
             @PathVariable Integer id,
