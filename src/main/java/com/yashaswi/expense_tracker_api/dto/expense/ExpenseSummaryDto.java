@@ -1,4 +1,4 @@
-package com.yashaswi.expense_tracker_api.dto;
+package com.yashaswi.expense_tracker_api.dto.expense;
 
 import com.yashaswi.expense_tracker_api.enums.ExpenseCategory;
 import lombok.AllArgsConstructor;

@@ -1,6 +1,6 @@
 package com.yashaswi.expense_tracker_api.repository;
 
-import com.yashaswi.expense_tracker_api.dto.ExpenseSummaryDto;
+import com.yashaswi.expense_tracker_api.dto.expense.ExpenseSummaryDto;
 import com.yashaswi.expense_tracker_api.entity.Expense;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -12,7 +12,7 @@ import java.util.List;
 public interface ExpenseRepository extends JpaRepository<Expense, Integer>, JpaSpecificationExecutor<Expense> {
 
     @Query("""
-            SELECT new com.yashaswi.expense_tracker_api.dto.ExpenseSummaryDto(
+            SELECT new com.yashaswi.expense_tracker_api.dto.expense.ExpenseSummaryDto(
                 e.category, 
                 SUM(e.amount), 
                 COUNT(e), 

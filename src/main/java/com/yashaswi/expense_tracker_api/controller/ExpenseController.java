@@ -1,9 +1,9 @@
 package com.yashaswi.expense_tracker_api.controller;
 
-import com.yashaswi.expense_tracker_api.dto.ExpenseCreation;
-import com.yashaswi.expense_tracker_api.dto.ExpenseResponse;
-import com.yashaswi.expense_tracker_api.dto.ExpenseSummaryDto;
-import com.yashaswi.expense_tracker_api.dto.ExpenseUpdateRequest;
+import com.yashaswi.expense_tracker_api.dto.expense.ExpenseCreation;
+import com.yashaswi.expense_tracker_api.dto.expense.ExpenseResponse;
+import com.yashaswi.expense_tracker_api.dto.expense.ExpenseSummaryDto;
+import com.yashaswi.expense_tracker_api.dto.expense.ExpenseUpdateRequest;
 import com.yashaswi.expense_tracker_api.enums.DateRange;
 import com.yashaswi.expense_tracker_api.enums.ExpenseCategory;
 import com.yashaswi.expense_tracker_api.service.ExpenseService;

@@ -1,12 +1,15 @@
 package com.yashaswi.expense_tracker_api.mapper;
 
-import com.yashaswi.expense_tracker_api.dto.ExpenseResponse;
-import com.yashaswi.expense_tracker_api.dto.UserResponse;
+import com.yashaswi.expense_tracker_api.dto.budget.BudgetResponse;
+import com.yashaswi.expense_tracker_api.dto.expense.ExpenseResponse;
+import com.yashaswi.expense_tracker_api.dto.user.UserResponse;
+import com.yashaswi.expense_tracker_api.entity.Budget;
 import com.yashaswi.expense_tracker_api.entity.Expense;
 import com.yashaswi.expense_tracker_api.entity.User;
 
 public class EntityToDtoMapper {
-    private EntityToDtoMapper() {}
+    private EntityToDtoMapper() {
+    }
 
     public static ExpenseResponse toDto(Expense expense) {
         if (expense == null) {
@@ -32,5 +35,21 @@ public class EntityToDtoMapper {
         userResponse.setId(user.getId());
         userResponse.setUsername(user.getUsername());
         return userResponse;
+    }
+
+    public static BudgetResponse toDto(Budget budget) {
+        if (budget == null) {
+            return null;
+        }
+        BudgetResponse budgetResponse = new BudgetResponse();
+        budgetResponse.setId(budget.getId());
+        budgetResponse.setLimit(budget.getBudgetLimit());
+        budgetResponse.setExpenseCategory(budget.getCategory());
+        budgetResponse.setSpent(budget.getSpent());
+        budgetResponse.setPeriod(budget.getPeriod());
+        if (budget.getUser() != null) {
+            budgetResponse.setCreator(toDto(budget.getUser()));
+        }
+        return budgetResponse;
     }
 }

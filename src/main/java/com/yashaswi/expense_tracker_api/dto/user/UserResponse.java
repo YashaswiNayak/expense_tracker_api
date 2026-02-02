@@ -1,4 +1,4 @@
-package com.yashaswi.expense_tracker_api.dto;
+package com.yashaswi.expense_tracker_api.dto.user;
 
 import lombok.Data;
 

@@ -1,17 +1,16 @@
-package com.yashaswi.expense_tracker_api.dto;
+package com.yashaswi.expense_tracker_api.dto.expense;
 
+import com.yashaswi.expense_tracker_api.dto.user.UserResponse;
 import com.yashaswi.expense_tracker_api.enums.ExpenseCategory;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDate;
 @Data
-public class ExpenseUpdateRequest {
-    @NotNull
+public class ExpenseCreation {
     private Integer id;
     private Double amount;
     private String description;
     private ExpenseCategory category;
-    private LocalDate date;
+    private LocalDate localDate;
     private UserResponse creator;
 }

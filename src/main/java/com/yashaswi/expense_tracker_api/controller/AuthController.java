@@ -1,8 +1,8 @@
 package com.yashaswi.expense_tracker_api.controller;
 
-import com.yashaswi.expense_tracker_api.dto.AuthResponse;
-import com.yashaswi.expense_tracker_api.dto.LoginRequest;
-import com.yashaswi.expense_tracker_api.dto.SignupRequest;
+import com.yashaswi.expense_tracker_api.dto.auth.AuthResponse;
+import com.yashaswi.expense_tracker_api.dto.auth.LoginRequest;
+import com.yashaswi.expense_tracker_api.dto.auth.SignupRequest;
 import com.yashaswi.expense_tracker_api.entity.User;
 import com.yashaswi.expense_tracker_api.enums.Role;
 import com.yashaswi.expense_tracker_api.repository.UserRepository;

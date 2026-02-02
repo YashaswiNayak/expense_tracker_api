@@ -1,10 +1,10 @@
 package com.yashaswi.expense_tracker_api.service;
 
 import com.yashaswi.expense_tracker_api.common.LocalDateRange;
-import com.yashaswi.expense_tracker_api.dto.ExpenseCreation;
-import com.yashaswi.expense_tracker_api.dto.ExpenseResponse;
-import com.yashaswi.expense_tracker_api.dto.ExpenseSummaryDto;
-import com.yashaswi.expense_tracker_api.dto.ExpenseUpdateRequest;
+import com.yashaswi.expense_tracker_api.dto.expense.ExpenseCreation;
+import com.yashaswi.expense_tracker_api.dto.expense.ExpenseResponse;
+import com.yashaswi.expense_tracker_api.dto.expense.ExpenseSummaryDto;
+import com.yashaswi.expense_tracker_api.dto.expense.ExpenseUpdateRequest;
 import com.yashaswi.expense_tracker_api.entity.Expense;
 import com.yashaswi.expense_tracker_api.entity.User;
 import com.yashaswi.expense_tracker_api.enums.DateRange;
@@ -23,8 +23,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.Month;
-import java.time.Year;
 import java.util.List;
 
 @Service
@@ -43,7 +41,7 @@ public class ExpenseService {
     ) {
         LocalDateRange effectiveRange = resolveRange(startDate, endDate, range);
 
-        Specification<Expense> spec = ExpenseSpecification.byUser(username).and(ExpenseSpecification.byExpenseCategory(expenseCategory));
+        Specification<Expense> spec = ExpenseSpecification.byUser(username);
 
         if (effectiveRange != null) {
             spec = spec.and(ExpenseSpecification.byDateRange(effectiveRange));
@@ -118,7 +116,7 @@ public class ExpenseService {
             String userName,
             Integer year,
             Integer month) {
-        return expenseRepository.getMonthlySummary(userName,year,month);
+        return expenseRepository.getMonthlySummary(userName, year, month);
     }
 
 }
