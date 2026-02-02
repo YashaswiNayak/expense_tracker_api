@@ -23,6 +23,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 
 @Service
@@ -30,6 +31,7 @@ import java.util.List;
 public class ExpenseService {
     private final ExpenseRepository expenseRepository;
     private final UserRepository userRepository;
+    private final BudgetService budgetService;
 
     public Page<ExpenseResponse> getAllExpenses(
             String username,
@@ -87,6 +89,10 @@ public class ExpenseService {
                 .date(expenseCreation.getLocalDate() != null ? expenseCreation.getLocalDate() : LocalDate.now())
                 .user(creator).build();
         Expense saveExpense = expenseRepository.save(expense);
+
+        YearMonth currentMonth = YearMonth.from(saveExpense.getDate());
+        budgetService.updateBudget(creatorUsername, saveExpense.getCategory(), currentMonth, saveExpense.getAmount());
+
         return EntityToDtoMapper.toDto(saveExpense);
 
     }
@@ -104,11 +110,20 @@ public class ExpenseService {
         if (!expense.getUser().getUsername().equals(creatorUsername)) {
             throw new UserNotFoundException("You cannot modify this expense");
         }
+
+        Double oldAmount = expense.getAmount();
+        Double newAmount = expenseUpdateRequest.getAmount();
+        Double delta = newAmount - oldAmount;
+
+
         expense.setAmount(expenseUpdateRequest.getAmount());
         expense.setDescription(expenseUpdateRequest.getDescription());
         expense.setCategory(expenseUpdateRequest.getCategory());
         expense.setDate(expenseUpdateRequest.getDate());
         Expense saved = expenseRepository.save(expense);
+
+        YearMonth currentMonth = YearMonth.from(saved.getDate());
+        budgetService.updateBudget(creatorUsername, saved.getCategory(), currentMonth, delta);
         return EntityToDtoMapper.toDto(saved);
     }
 

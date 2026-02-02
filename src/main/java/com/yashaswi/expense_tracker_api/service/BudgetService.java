@@ -2,9 +2,9 @@ package com.yashaswi.expense_tracker_api.service;
 
 import com.yashaswi.expense_tracker_api.dto.budget.BudgetCreation;
 import com.yashaswi.expense_tracker_api.dto.budget.BudgetResponse;
-import com.yashaswi.expense_tracker_api.dto.budget.BudgetUpdateRequest;
 import com.yashaswi.expense_tracker_api.entity.Budget;
 import com.yashaswi.expense_tracker_api.entity.User;
+import com.yashaswi.expense_tracker_api.enums.ExpenseCategory;
 import com.yashaswi.expense_tracker_api.exception.BadRequestException;
 import com.yashaswi.expense_tracker_api.exception.UserNotFoundException;
 import com.yashaswi.expense_tracker_api.mapper.EntityToDtoMapper;
@@ -48,13 +48,13 @@ public class BudgetService {
         return budgets.stream().map(EntityToDtoMapper::toDto).toList();
     }
 
-    public String updateBudget(String username, BudgetUpdateRequest budgetUpdateRequest) {
-        budgetRepository.findByUser_UsernameAndCategoryAndPeriod(username, budgetUpdateRequest.getExpenseCategory(), budgetUpdateRequest.getPeriod())
+    public String updateBudget(String username, ExpenseCategory expenseCategory,YearMonth period, Double amountDelta) {
+        budgetRepository.findByUser_UsernameAndCategoryAndPeriod(username, expenseCategory, period)
                 .ifPresent(budget -> {
-                    budget.setSpent(Math.max(0, budget.getSpent() + budgetUpdateRequest.getAmountDelta()));
+                    budget.setSpent(Math.max(0, budget.getSpent() + amountDelta));
                     budgetRepository.save(budget);
                 });
-        return "Budget updated for expense category -> " + budgetUpdateRequest.getExpenseCategory() + "<- for the period" + budgetUpdateRequest.getPeriod();
+        return "Budget updated for expense category -> " + amountDelta + "<- for the period" + period;
     }
 
 }
