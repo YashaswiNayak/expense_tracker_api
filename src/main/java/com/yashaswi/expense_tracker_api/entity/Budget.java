@@ -30,8 +30,7 @@ public class Budget {
     @Positive
     @Column(nullable = false)
     private Double budgetLimit;
-
-    @Column(nullable = false)
+    @Builder.Default
     private Double spent = 0.0;
 
     @ManyToOne(fetch = FetchType.LAZY)

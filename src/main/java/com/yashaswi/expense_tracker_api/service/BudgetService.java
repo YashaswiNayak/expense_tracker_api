@@ -6,6 +6,8 @@ import com.yashaswi.expense_tracker_api.entity.Budget;
 import com.yashaswi.expense_tracker_api.entity.User;
 import com.yashaswi.expense_tracker_api.enums.ExpenseCategory;
 import com.yashaswi.expense_tracker_api.exception.BadRequestException;
+import com.yashaswi.expense_tracker_api.exception.BudgetExceededException;
+import com.yashaswi.expense_tracker_api.exception.BudgetNotFoundException;
 import com.yashaswi.expense_tracker_api.exception.UserNotFoundException;
 import com.yashaswi.expense_tracker_api.mapper.EntityToDtoMapper;
 import com.yashaswi.expense_tracker_api.repository.BudgetRepository;
@@ -37,8 +39,19 @@ public class BudgetService {
 
         Budget budget = Budget.builder().user(creator).budgetLimit(budgetCreation.getLimit()).category(budgetCreation.getExpenseCategory()).period(period).user(creator).build();
         Budget saveBudget = budgetRepository.save(budget);
+
+
+        recalculateBudgetSpent(saveBudget.getId(), creatorUsername);
+
+        if (saveBudget.getSpent() > saveBudget.getBudgetLimit()) {
+            throw new BudgetExceededException(
+                    "Already spent " + saveBudget.getSpent() + " > " + saveBudget.getBudgetLimit() + " for " + budgetCreation.getExpenseCategory() + " in " + budgetCreation.getPeriod()
+            );
+        }
+
         return EntityToDtoMapper.toDto(saveBudget);
     }
+
 
     public List<BudgetResponse> getAllBudgets(String username, String period) {
         YearMonth periodYM = period != null ? YearMonth.parse(period) : null;
@@ -48,13 +61,29 @@ public class BudgetService {
         return budgets.stream().map(EntityToDtoMapper::toDto).toList();
     }
 
-    public String updateBudget(String username, ExpenseCategory expenseCategory,YearMonth period, Double amountDelta) {
+    public String updateBudget(String username, ExpenseCategory expenseCategory, YearMonth period, Double amountDelta) {
         budgetRepository.findByUser_UsernameAndCategoryAndPeriod(username, expenseCategory, period)
                 .ifPresent(budget -> {
                     budget.setSpent(Math.max(0, budget.getSpent() + amountDelta));
                     budgetRepository.save(budget);
                 });
         return "Budget updated for expense category -> " + amountDelta + "<- for the period" + period;
+    }
+
+
+    private void recalculateBudgetSpent(Integer budgetId, String username) {
+        Budget budget = budgetRepository.findById(budgetId)
+                .orElseThrow(() -> new BudgetNotFoundException(budgetId));
+
+        // Sum ALL matching expenses for this budget
+        Double totalSpent = expenseRepository.sumAmountByUserUsernameCategoryAndPeriod(
+                username, budget.getCategory(),
+                budget.getPeriod().getYear(),
+                budget.getPeriod().getMonthValue()
+        );
+
+        budget.setSpent(totalSpent != null ? totalSpent : 0.0);
+        budgetRepository.save(budget);
     }
 
 }

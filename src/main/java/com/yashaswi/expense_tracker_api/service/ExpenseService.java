@@ -5,14 +5,17 @@ import com.yashaswi.expense_tracker_api.dto.expense.ExpenseCreation;
 import com.yashaswi.expense_tracker_api.dto.expense.ExpenseResponse;
 import com.yashaswi.expense_tracker_api.dto.expense.ExpenseSummaryDto;
 import com.yashaswi.expense_tracker_api.dto.expense.ExpenseUpdateRequest;
+import com.yashaswi.expense_tracker_api.entity.Budget;
 import com.yashaswi.expense_tracker_api.entity.Expense;
 import com.yashaswi.expense_tracker_api.entity.User;
 import com.yashaswi.expense_tracker_api.enums.DateRange;
 import com.yashaswi.expense_tracker_api.enums.ExpenseCategory;
 import com.yashaswi.expense_tracker_api.exception.BadRequestException;
+import com.yashaswi.expense_tracker_api.exception.BudgetExceededException;
 import com.yashaswi.expense_tracker_api.exception.ExpenseNotFoundException;
 import com.yashaswi.expense_tracker_api.exception.UserNotFoundException;
 import com.yashaswi.expense_tracker_api.mapper.EntityToDtoMapper;
+import com.yashaswi.expense_tracker_api.repository.BudgetRepository;
 import com.yashaswi.expense_tracker_api.repository.ExpenseRepository;
 import com.yashaswi.expense_tracker_api.repository.UserRepository;
 import com.yashaswi.expense_tracker_api.specification.ExpenseSpecification;
@@ -25,12 +28,14 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class ExpenseService {
     private final ExpenseRepository expenseRepository;
     private final UserRepository userRepository;
+    private final BudgetRepository budgetRepository;
     private final BudgetService budgetService;
 
     public Page<ExpenseResponse> getAllExpenses(
@@ -82,19 +87,45 @@ public class ExpenseService {
 
     //__________________________________________________________________________________
     public ExpenseResponse createNewExpense(ExpenseCreation expenseCreation, String creatorUsername) {
-        User creator = userRepository.findByUsername(creatorUsername).orElseThrow(() -> new UserNotFoundException("Creator not found " + creatorUsername));
-        Expense expense = Expense.builder().amount(expenseCreation.getAmount())
-                .category(expenseCreation.getCategory() != null ? expenseCreation.getCategory() : ExpenseCategory.MISCELLANEOUS)
+        User creator = userRepository.findByUsername(creatorUsername)
+                .orElseThrow(() -> new UserNotFoundException("Creator not found " + creatorUsername));
+
+        Expense expense = Expense.builder()
+                .amount(expenseCreation.getAmount())
+                .category(expenseCreation.getCategory() != null ?
+                        expenseCreation.getCategory() : ExpenseCategory.MISCELLANEOUS)
                 .description(expenseCreation.getDescription())
-                .date(expenseCreation.getLocalDate() != null ? expenseCreation.getLocalDate() : LocalDate.now())
-                .user(creator).build();
-        Expense saveExpense = expenseRepository.save(expense);
+                .date(expenseCreation.getLocalDate() != null ?
+                        expenseCreation.getLocalDate() : LocalDate.now())
+                .user(creator)
+                .build();
 
-        YearMonth currentMonth = YearMonth.from(saveExpense.getDate());
-        budgetService.updateBudget(creatorUsername, saveExpense.getCategory(), currentMonth, saveExpense.getAmount());
+        // CHECK BUDGET BEFORE SAVING (projected spend)
+        YearMonth currentMonth = YearMonth.from(expense.getDate());  // ← Use expense.date (before save)
 
-        return EntityToDtoMapper.toDto(saveExpense);
+        Optional<Budget> matchingBudget = budgetRepository
+                .findByUser_UsernameAndCategoryAndPeriod(creatorUsername, expense.getCategory(), currentMonth);
 
+        if (matchingBudget.isPresent()) {
+            Budget budget = matchingBudget.get();
+            Double projectedSpent = budget.getSpent() + expense.getAmount();
+
+            if (projectedSpent > budget.getBudgetLimit()) {
+                throw new BudgetExceededException(
+                        "Budget exceeded for " + expense.getCategory() + "! " +
+                                "Projected: ₹" + projectedSpent + " > Limit: ₹" + budget.getBudgetLimit()
+                );
+            }
+        }
+
+        // ✅ SAVE EXPENSE
+        Expense savedExpense = expenseRepository.save(expense);
+
+        // ✅ UPDATE BUDGET (increment)
+        budgetService.updateBudget(creatorUsername, savedExpense.getCategory(),
+                currentMonth, savedExpense.getAmount());
+
+        return EntityToDtoMapper.toDto(savedExpense);
     }
 
     //__________________________________________________________________________________
