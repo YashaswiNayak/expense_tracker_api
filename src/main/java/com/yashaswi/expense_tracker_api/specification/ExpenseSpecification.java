@@ -25,4 +25,11 @@ public class ExpenseSpecification {
                                 dateRange.start(), dateRange.end()));
     }
 
+    public static Specification<Expense> byAmountRange(Double minAmount, Double maxAmount) {
+        if (minAmount == null || maxAmount == null) return null;
+
+        return (root, query, cb) ->
+                cb.between(root.get("amount"), minAmount, maxAmount);
+
+    }
 }

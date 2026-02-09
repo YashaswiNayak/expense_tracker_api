@@ -46,7 +46,9 @@ public class ExpenseService {
             LocalDate startDate,
             LocalDate endDate,
             DateRange range,
-            ExpenseCategory expenseCategory
+            ExpenseCategory expenseCategory,
+            Double minAmount,
+            Double maxAmount
     ) {
         LocalDateRange effectiveRange = resolveRange(startDate, endDate, range);
 
@@ -60,6 +62,10 @@ public class ExpenseService {
         if (expenseCategory != null) {
             log.info("Filtering based on expense category: {}", expenseCategory);
             spec = spec.and(ExpenseSpecification.byExpenseCategory(expenseCategory));
+        }
+
+        if (minAmount != null && maxAmount != null) {
+            spec = spec.and(ExpenseSpecification.byAmountRange(minAmount, maxAmount));
         }
 
         Page<Expense> page = expenseRepository.findAll(spec, pageable);

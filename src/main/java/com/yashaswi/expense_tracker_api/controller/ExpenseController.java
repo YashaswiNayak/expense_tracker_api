@@ -61,11 +61,16 @@ public class ExpenseController {
             @RequestParam(required = false)
             DateRange dateRange,
             @RequestParam(required = false)
-            ExpenseCategory expenseCategory
+            ExpenseCategory expenseCategory,
+            @RequestParam(required = false)
+            Double minAmount,
+            @RequestParam(required = false)
+            Double maxAmount
+
 
     ) {
         Page<ExpenseResponse> expenses =
-                expenseService.getAllExpenses(userDetails.getUsername(), pageable, startDate, endDate, dateRange, expenseCategory);
+                expenseService.getAllExpenses(userDetails.getUsername(), pageable, startDate, endDate, dateRange, expenseCategory,minAmount,maxAmount);
 
         return ResponseEntity.ok(expenses);
     }
