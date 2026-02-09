@@ -14,6 +14,7 @@ import com.yashaswi.expense_tracker_api.repository.BudgetRepository;
 import com.yashaswi.expense_tracker_api.repository.ExpenseRepository;
 import com.yashaswi.expense_tracker_api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.YearMonth;
@@ -21,6 +22,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BudgetService {
     private final ExpenseRepository expenseRepository;
     private final UserRepository userRepository;
@@ -81,7 +83,7 @@ public class BudgetService {
                 budget.getPeriod().getYear(),
                 budget.getPeriod().getMonthValue()
         );
-
+        log.info("Total spent for expense category -> {}", totalSpent);
         budget.setSpent(totalSpent != null ? totalSpent : 0.0);
         budgetRepository.save(budget);
     }

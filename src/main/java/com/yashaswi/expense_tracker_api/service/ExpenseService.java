@@ -20,6 +20,7 @@ import com.yashaswi.expense_tracker_api.repository.ExpenseRepository;
 import com.yashaswi.expense_tracker_api.repository.UserRepository;
 import com.yashaswi.expense_tracker_api.specification.ExpenseSpecification;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -32,6 +33,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ExpenseService {
     private final ExpenseRepository expenseRepository;
     private final UserRepository userRepository;
@@ -51,10 +53,12 @@ public class ExpenseService {
         Specification<Expense> spec = ExpenseSpecification.byUser(username);
 
         if (effectiveRange != null) {
+            log.info("Filtering based on effective range: {}", effectiveRange);
             spec = spec.and(ExpenseSpecification.byDateRange(effectiveRange));
         }
 
         if (expenseCategory != null) {
+            log.info("Filtering based on expense category: {}", expenseCategory);
             spec = spec.and(ExpenseSpecification.byExpenseCategory(expenseCategory));
         }
 
@@ -109,7 +113,6 @@ public class ExpenseService {
         if (matchingBudget.isPresent()) {
             Budget budget = matchingBudget.get();
             Double projectedSpent = budget.getSpent() + expense.getAmount();
-
             if (projectedSpent > budget.getBudgetLimit()) {
                 throw new BudgetExceededException(
                         "Budget exceeded for " + expense.getCategory() + "! " +
@@ -122,9 +125,9 @@ public class ExpenseService {
         Expense savedExpense = expenseRepository.save(expense);
 
         // ✅ UPDATE BUDGET (increment)
-        budgetService.updateBudget(creatorUsername, savedExpense.getCategory(),
+        String response = budgetService.updateBudget(creatorUsername, savedExpense.getCategory(),
                 currentMonth, savedExpense.getAmount());
-
+        log.info(response);
         return EntityToDtoMapper.toDto(savedExpense);
     }
 
@@ -154,7 +157,8 @@ public class ExpenseService {
         Expense saved = expenseRepository.save(expense);
 
         YearMonth currentMonth = YearMonth.from(saved.getDate());
-        budgetService.updateBudget(creatorUsername, saved.getCategory(), currentMonth, delta);
+        String response = budgetService.updateBudget(creatorUsername, saved.getCategory(), currentMonth, delta);
+        log.info(response);
         return EntityToDtoMapper.toDto(saved);
     }
 

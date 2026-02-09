@@ -9,6 +9,7 @@ import com.yashaswi.expense_tracker_api.enums.ExpenseCategory;
 import com.yashaswi.expense_tracker_api.service.ExpenseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
