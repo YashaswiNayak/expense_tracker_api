@@ -1,27 +1,19 @@
 package com.yashaswi.expense_tracker_api.controller;
 
-import com.yashaswi.expense_tracker_api.dto.expense.ExpenseCreation;
-import com.yashaswi.expense_tracker_api.dto.expense.ExpenseResponse;
-import com.yashaswi.expense_tracker_api.dto.expense.ExpenseSummaryDto;
-import com.yashaswi.expense_tracker_api.dto.expense.ExpenseUpdateRequest;
-import com.yashaswi.expense_tracker_api.enums.DateRange;
-import com.yashaswi.expense_tracker_api.enums.ExpenseCategory;
+import com.yashaswi.expense_tracker_api.dto.expense.*;
 import com.yashaswi.expense_tracker_api.service.ExpenseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -52,25 +44,11 @@ public class ExpenseController {
                     direction = Sort.Direction.DESC
             ) Pageable pageable,
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-            LocalDate startDate,
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-            LocalDate endDate,
-            @RequestParam(required = false)
-            DateRange dateRange,
-            @RequestParam(required = false)
-            ExpenseCategory expenseCategory,
-            @RequestParam(required = false)
-            Double minAmount,
-            @RequestParam(required = false)
-            Double maxAmount
-
+            @ModelAttribute ExpenseFilter expenseFilter
 
     ) {
         Page<ExpenseResponse> expenses =
-                expenseService.getAllExpenses(userDetails.getUsername(), pageable, startDate, endDate, dateRange, expenseCategory,minAmount,maxAmount);
+                expenseService.getAllExpenses(userDetails.getUsername(), pageable, expenseFilter);
 
         return ResponseEntity.ok(expenses);
     }

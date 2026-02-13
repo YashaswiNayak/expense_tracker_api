@@ -5,6 +5,8 @@ import com.yashaswi.expense_tracker_api.entity.Expense;
 import com.yashaswi.expense_tracker_api.enums.ExpenseCategory;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.List;
+
 public class ExpenseSpecification {
     public static Specification<Expense> byUser(String username) {
         return username == null ? null :
@@ -12,10 +14,11 @@ public class ExpenseSpecification {
                         criteriaBuilder.equal(root.get("user").get("username"), username));
     }
 
-    public static Specification<Expense> byExpenseCategory(ExpenseCategory expenseCategory) {
-        return expenseCategory == null ? null :
-                ((root, query, criteriaBuilder) ->
-                        criteriaBuilder.equal(root.get("category"), expenseCategory));
+    public static Specification<Expense> byExpenseCategories(List<ExpenseCategory> categories) {
+        if(categories == null || categories.isEmpty()) {
+            return null;
+        }
+        return (root, query, criteriaBuilder) ->root.get("category").in(categories);
     }
 
     public static Specification<Expense> byDateRange(LocalDateRange dateRange) {

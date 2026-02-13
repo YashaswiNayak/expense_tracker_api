@@ -1,10 +1,7 @@
 package com.yashaswi.expense_tracker_api.service;
 
 import com.yashaswi.expense_tracker_api.common.LocalDateRange;
-import com.yashaswi.expense_tracker_api.dto.expense.ExpenseCreation;
-import com.yashaswi.expense_tracker_api.dto.expense.ExpenseResponse;
-import com.yashaswi.expense_tracker_api.dto.expense.ExpenseSummaryDto;
-import com.yashaswi.expense_tracker_api.dto.expense.ExpenseUpdateRequest;
+import com.yashaswi.expense_tracker_api.dto.expense.*;
 import com.yashaswi.expense_tracker_api.entity.Budget;
 import com.yashaswi.expense_tracker_api.entity.Expense;
 import com.yashaswi.expense_tracker_api.entity.User;
@@ -43,14 +40,9 @@ public class ExpenseService {
     public Page<ExpenseResponse> getAllExpenses(
             String username,
             Pageable pageable,
-            LocalDate startDate,
-            LocalDate endDate,
-            DateRange range,
-            ExpenseCategory expenseCategory,
-            Double minAmount,
-            Double maxAmount
+            ExpenseFilter expenseFilter
     ) {
-        LocalDateRange effectiveRange = resolveRange(startDate, endDate, range);
+        LocalDateRange effectiveRange = resolveRange(expenseFilter.getStartDate(), expenseFilter.getEndDate(), expenseFilter.getDateRange());
 
         Specification<Expense> spec = ExpenseSpecification.byUser(username);
 
@@ -59,13 +51,13 @@ public class ExpenseService {
             spec = spec.and(ExpenseSpecification.byDateRange(effectiveRange));
         }
 
-        if (expenseCategory != null) {
-            log.info("Filtering based on expense category: {}", expenseCategory);
-            spec = spec.and(ExpenseSpecification.byExpenseCategory(expenseCategory));
+        if (expenseFilter.getCategories() != null) {
+            log.info("Filtering based on expense category: {}", expenseFilter.getCategories());
+            spec = spec.and(ExpenseSpecification.byExpenseCategories(expenseFilter.getCategories()));
         }
 
-        if (minAmount != null && maxAmount != null) {
-            spec = spec.and(ExpenseSpecification.byAmountRange(minAmount, maxAmount));
+        if (expenseFilter.getMinAmount() != null && expenseFilter.getMaxAmount() != null) {
+            spec = spec.and(ExpenseSpecification.byAmountRange(expenseFilter.getMinAmount(), expenseFilter.getMaxAmount()));
         }
 
         Page<Expense> page = expenseRepository.findAll(spec, pageable);
