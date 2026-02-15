@@ -16,4 +16,5 @@ spring:
 
 jwt:
   secret: JR8SA8lou4SHUu09I+IGC2XXIoIeGO1aFGHOGM1OmAA=
-  expiration: 86400000
+  access-expiration: 900
+  refresh-expiration: 604800
