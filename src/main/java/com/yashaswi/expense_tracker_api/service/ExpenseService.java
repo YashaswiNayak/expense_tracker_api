@@ -19,6 +19,7 @@ import com.yashaswi.expense_tracker_api.specification.ExpenseSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -110,7 +112,7 @@ public class ExpenseService {
 
         if (matchingBudget.isPresent()) {
             Budget budget = matchingBudget.get();
-            Double projectedSpent = budget.getSpent() + expense.getAmount();
+            double projectedSpent = budget.getSpent() + expense.getAmount();
             if (projectedSpent > budget.getBudgetLimit()) {
                 throw new BudgetExceededException(
                         "Budget exceeded for " + expense.getCategory() + "! " +
@@ -159,6 +161,7 @@ public class ExpenseService {
         log.info(response);
         return EntityToDtoMapper.toDto(saved);
     }
+    //__________________________________________________________________________________
 
     public List<ExpenseSummaryDto> getSummary(
             String userName,
@@ -166,5 +169,20 @@ public class ExpenseService {
             Integer month) {
         return expenseRepository.getMonthlySummary(userName, year, month);
     }
+    //_______________________________________________________________________________
 
+    public List<TrendResponse> getMonthlyTrends(String username, ExpenseCategory category) {
+        List<Object[]> results = expenseRepository.findMonthlyTrends(username, category);
+
+        return results.stream()
+                .map(row -> EntityToDtoMapper.trendRowToDto(row, category))
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    public Page<TopExpenseResponse> getTopExpenses(String username, int limit) {
+        Pageable pageable = PageRequest.of(0, limit);
+        Page<Expense> expenses = expenseRepository.findTopExpensesByAmount(username, pageable);
+        return expenses.map(EntityToDtoMapper::topExpenseToDto);
+    }
 }

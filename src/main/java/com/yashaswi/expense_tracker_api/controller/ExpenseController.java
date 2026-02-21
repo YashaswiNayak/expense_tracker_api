@@ -1,6 +1,7 @@
 package com.yashaswi.expense_tracker_api.controller;
 
 import com.yashaswi.expense_tracker_api.dto.expense.*;
+import com.yashaswi.expense_tracker_api.enums.ExpenseCategory;
 import com.yashaswi.expense_tracker_api.service.ExpenseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,51 +25,40 @@ public class ExpenseController {
     private final ExpenseService expenseService;
 
     @PostMapping
-    public ResponseEntity<ExpenseResponse> createExpense(
-            @Valid @RequestBody ExpenseCreation expenseCreation,
-            @AuthenticationPrincipal UserDetails userDetails
-    ) {
-        ExpenseResponse response =
-                expenseService.createNewExpense(expenseCreation, userDetails.getUsername());
+    public ResponseEntity<ExpenseResponse> createExpense(@Valid @RequestBody ExpenseCreation expenseCreation, @AuthenticationPrincipal UserDetails userDetails) {
+        ExpenseResponse response = expenseService.createNewExpense(expenseCreation, userDetails.getUsername());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     //____________________________________________________________________________________
     @GetMapping
-    public ResponseEntity<Page<ExpenseResponse>> getAllExpenses(
-            @PageableDefault(
-                    page = 0,
-                    size = 10,
-                    sort = "date",
-                    direction = Sort.Direction.DESC
-            ) Pageable pageable,
-            @AuthenticationPrincipal UserDetails userDetails,
-            @ModelAttribute ExpenseFilter expenseFilter
+    public ResponseEntity<Page<ExpenseResponse>> getAllExpenses(@PageableDefault(page = 0, size = 10, sort = "date", direction = Sort.Direction.DESC) Pageable pageable, @AuthenticationPrincipal UserDetails userDetails, @ModelAttribute ExpenseFilter expenseFilter
 
     ) {
-        Page<ExpenseResponse> expenses =
-                expenseService.getAllExpenses(userDetails.getUsername(), pageable, expenseFilter);
+        Page<ExpenseResponse> expenses = expenseService.getAllExpenses(userDetails.getUsername(), pageable, expenseFilter);
 
         return ResponseEntity.ok(expenses);
     }
 
     @GetMapping("/summary")
-    public ResponseEntity<List<ExpenseSummaryDto>> getSummary(
-            @PageableDefault(
-                    page = 0,
-                    size = 10,
-                    sort = "date",
-                    direction = Sort.Direction.DESC
-            ) Pageable pageable,
-            @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam(required = false)
-            Integer year,
-            @RequestParam(required = false)
-            Integer month
-    ) {
+    public ResponseEntity<List<ExpenseSummaryDto>> getSummary(@PageableDefault(page = 0, size = 10, sort = "date", direction = Sort.Direction.DESC) Pageable pageable, @AuthenticationPrincipal UserDetails userDetails, @RequestParam(required = false) Integer year, @RequestParam(required = false) Integer month) {
         return ResponseEntity.ok(expenseService.getSummary(userDetails.getUsername(), year, month));
 
+    }
+
+    @GetMapping("/trends")
+    public ResponseEntity<List<TrendResponse>> getTrends(@AuthenticationPrincipal UserDetails userDetails, @RequestParam(required = false) ExpenseCategory category) {
+        List<TrendResponse> trends = expenseService.getMonthlyTrends(userDetails.getUsername(), category);
+        return ResponseEntity.ok(trends);
+    }
+
+
+    @GetMapping("/top")
+    public ResponseEntity<Page<TopExpenseResponse>> getTopExpense(@AuthenticationPrincipal UserDetails userDetails, @RequestParam(defaultValue = "5") int limit) {
+        Page<TopExpenseResponse> topExpense = expenseService.getTopExpenses(userDetails.getUsername(), limit);
+
+        return ResponseEntity.ok(topExpense);
     }
 
     //____________________________________________________________________________________
@@ -79,11 +69,7 @@ public class ExpenseController {
 
     //____________________________________________________________________________________
     @PutMapping("/{id}")
-    public ResponseEntity<ExpenseResponse> updateExpense(
-            @PathVariable Integer id,
-            @Valid @RequestBody ExpenseUpdateRequest expenseUpdateRequest,
-            @AuthenticationPrincipal UserDetails userDetails
-    ) {
+    public ResponseEntity<ExpenseResponse> updateExpense(@PathVariable Integer id, @Valid @RequestBody ExpenseUpdateRequest expenseUpdateRequest, @AuthenticationPrincipal UserDetails userDetails) {
         ExpenseResponse response = expenseService.updateResponse(expenseUpdateRequest, id, userDetails.getUsername());
         return ResponseEntity.ok(response);
     }
