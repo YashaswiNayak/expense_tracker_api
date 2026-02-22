@@ -2,6 +2,7 @@ package com.yashaswi.expense_tracker_api.mapper;
 
 import com.yashaswi.expense_tracker_api.dto.budget.BudgetResponse;
 import com.yashaswi.expense_tracker_api.dto.expense.ExpenseResponse;
+import com.yashaswi.expense_tracker_api.dto.expense.ExportExpenseResponse;
 import com.yashaswi.expense_tracker_api.dto.expense.TopExpenseResponse;
 import com.yashaswi.expense_tracker_api.dto.expense.TrendResponse;
 import com.yashaswi.expense_tracker_api.dto.user.UserResponse;
@@ -75,6 +76,19 @@ public class EntityToDtoMapper {
             return null;
         }
         return new TopExpenseResponse(
+                expense.getId(),
+                expense.getDescription(),
+                expense.getAmount(),
+                expense.getDate(),
+                expense.getCategory()
+        );
+    }
+
+    public static ExportExpenseResponse exportExpenseToDto(Expense expense) {
+        if (expense == null) {
+            return null;
+        }
+        return new ExportExpenseResponse(
                 expense.getId(),
                 expense.getDescription(),
                 expense.getAmount(),

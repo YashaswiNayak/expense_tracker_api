@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface ExpenseRepository extends JpaRepository<Expense, Integer>, JpaSpecificationExecutor<Expense> {
@@ -63,5 +64,14 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer>, JpaS
     @Query("SELECT e FROM Expense e WHERE e.user.username = :username " +
             "ORDER BY e.amount DESC")
     Page<Expense> findTopExpensesByAmount(@Param("username") String username, Pageable pageable);
+
+    @Query("SELECT e FROM Expense e WHERE e.user.username = :username " +
+            "AND e.date BETWEEN :startDate AND :endDate " +
+            "AND (:category IS NULL OR e.category = :category)")
+    List<Expense> findByUserUsernameAndDateBetweenAndCategory(
+            @Param("username") String username,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("category") ExpenseCategory category);
 
 }

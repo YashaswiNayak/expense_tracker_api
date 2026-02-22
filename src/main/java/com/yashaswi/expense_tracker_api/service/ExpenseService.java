@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -184,5 +185,18 @@ public class ExpenseService {
         Pageable pageable = PageRequest.of(0, limit);
         Page<Expense> expenses = expenseRepository.findTopExpensesByAmount(username, pageable);
         return expenses.map(EntityToDtoMapper::topExpenseToDto);
+    }
+
+    public List<Expense> getExpensesforExport(String username, String range, ExpenseCategory category) {
+        LocalDate endDate=LocalDate.now();
+        LocalDate startDate = switch (range.toUpperCase()) {
+            case "PAST_MONTH" -> LocalDate.now().minusMonths(1);
+            case "PAST_3_MONTHS" -> LocalDate.now().minusMonths(3);
+            case "PAST_YEAR" -> LocalDate.now().minusYears(1);
+            default -> endDate.minus(30, ChronoUnit.DAYS);
+        };
+
+        return expenseRepository.findByUserUsernameAndDateBetweenAndCategory(username, startDate, endDate, category);
+
     }
 }

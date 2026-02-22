@@ -1,7 +1,9 @@
 package com.yashaswi.expense_tracker_api.controller;
 
 import com.yashaswi.expense_tracker_api.dto.expense.*;
+import com.yashaswi.expense_tracker_api.entity.Expense;
 import com.yashaswi.expense_tracker_api.enums.ExpenseCategory;
+import com.yashaswi.expense_tracker_api.service.CsvExportService;
 import com.yashaswi.expense_tracker_api.service.ExpenseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -9,12 +11,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -23,6 +29,7 @@ import java.util.List;
 public class ExpenseController {
 
     private final ExpenseService expenseService;
+    private final CsvExportService csvExportService;
 
     @PostMapping
     public ResponseEntity<ExpenseResponse> createExpense(@Valid @RequestBody ExpenseCreation expenseCreation, @AuthenticationPrincipal UserDetails userDetails) {
@@ -59,6 +66,32 @@ public class ExpenseController {
         Page<TopExpenseResponse> topExpense = expenseService.getTopExpenses(userDetails.getUsername(), limit);
 
         return ResponseEntity.ok(topExpense);
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportExpenses(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "csv") String format,
+            @RequestParam(defaultValue = "PAST_MONTH") String range,
+            @RequestParam(required = false) ExpenseCategory expenseCategory
+    ) {
+        String username = userDetails.getUsername();
+
+        List<Expense> expenses = expenseService.getExpensesforExport(username, range, expenseCategory);
+
+        try {
+            String csvContent = csvExportService.exportExpensesToCSV(expenses);
+            byte[] bytes = csvContent.getBytes();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("text/csv"));
+            headers.setContentDispositionFormData("attachment", "expenses_" + LocalDate.now() + ".csv");
+            headers.setContentLength(bytes.length);
+
+            return ResponseEntity.ok().headers(headers).body(bytes);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     //____________________________________________________________________________________
