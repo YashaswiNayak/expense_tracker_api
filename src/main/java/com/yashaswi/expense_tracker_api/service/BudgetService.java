@@ -88,4 +88,27 @@ public class BudgetService {
         budgetRepository.save(budget);
     }
 
+    public String deleteBudget(Integer id, String creatorUsername) {
+        Budget budget = budgetRepository.findById(id).orElseThrow(() -> new BudgetNotFoundException(id));
+
+        if(!budget.getUser().getUsername().equals(creatorUsername)) {
+            throw new UserNotFoundException("Creator not found" + creatorUsername);
+        }
+
+        budgetRepository.delete(budget);
+        return "Budget deleted successfully";
+    }
+
+    public BudgetResponse editBudget(Integer id, Double newLimit, String username) {
+        Budget budget = budgetRepository.findById(id)
+                .orElseThrow(() -> new BudgetNotFoundException(id));
+
+        if (!budget.getUser().getUsername().equals(username)) {
+            throw new UserNotFoundException("You cannot modify this budget");
+        }
+
+        budget.setBudgetLimit(newLimit);
+        return EntityToDtoMapper.toDto(budgetRepository.save(budget));
+    }
+
 }

@@ -8,7 +8,6 @@ import lombok.Data;
 import java.time.LocalDate;
 @Data
 public class ExpenseUpdateRequest {
-    @NotNull
     private Integer id;
     private Double amount;
     private String description;

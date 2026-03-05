@@ -17,7 +17,7 @@ import java.util.List;
 public class CsvExportService {
     public String exportExpensesToCSV(List<Expense> expenses) throws IOException {
         StringWriter sw = new StringWriter();
-        try (CSVPrinter csvPrinter = new CSVPrinter(sw, CSVFormat.DEFAULT.builder().setHeader("ID", "Description", "Amount", "Data", "Category").build())) {
+        try (CSVPrinter csvPrinter = new CSVPrinter(sw, CSVFormat.DEFAULT.builder().setHeader("ID", "Description", "Amount", "Date", "Category").build())) {
             for (Expense expense : expenses) {
                 ExportExpenseResponse dto = EntityToDtoMapper.exportExpenseToDto(expense);
                 csvPrinter.printRecord(

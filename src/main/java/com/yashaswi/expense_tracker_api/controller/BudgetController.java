@@ -35,4 +35,23 @@ public class BudgetController {
         List<BudgetResponse> budgets = budgetService.getAllBudgets(userDetails.getUsername(), period);
         return ResponseEntity.ok(budgets);
     }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteBudget(@PathVariable Integer id,@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(budgetService.deleteBudget(id,userDetails.getUsername()));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<BudgetResponse> updateBudget(
+            @PathVariable Integer id,
+            @RequestParam Double limit,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        return ResponseEntity.ok(
+                budgetService.editBudget(id, limit, userDetails.getUsername())
+        );
+    }
+
+
+
+
 }

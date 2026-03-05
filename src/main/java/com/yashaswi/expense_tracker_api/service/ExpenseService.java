@@ -133,7 +133,15 @@ public class ExpenseService {
     }
 
     //__________________________________________________________________________________
-    public String deleteExpense(Integer expenseId) {
+    public String deleteExpense(Integer expenseId, String creatorUsername) {
+        Expense expense = expenseRepository.findById(expenseId).orElseThrow(() -> new ExpenseNotFoundException("Expense Not Found " + expenseId));
+        if (!expense.getUser().getUsername().equals(creatorUsername)) {
+            throw new UserNotFoundException("You cannot delete this expense");
+        }
+
+        //Update the budget
+        YearMonth period = YearMonth.from(expense.getDate());
+        budgetService.updateBudget(creatorUsername, expense.getCategory(), period, -expense.getAmount());
         expenseRepository.deleteById(expenseId);
         return "Expense deleted successfully";
     }
@@ -188,7 +196,7 @@ public class ExpenseService {
     }
 
     public List<Expense> getExpensesforExport(String username, String range, ExpenseCategory category) {
-        LocalDate endDate=LocalDate.now();
+        LocalDate endDate = LocalDate.now();
         LocalDate startDate = switch (range.toUpperCase()) {
             case "PAST_MONTH" -> LocalDate.now().minusMonths(1);
             case "PAST_3_MONTHS" -> LocalDate.now().minusMonths(3);

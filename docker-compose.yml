@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      # ✅ MATCHES your application.yml exactly!
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/expense_tracker_database?useSSL=true&requireSSL=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_PASSWORD=user
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=true
+    depends_on:
+      db:
+        condition: service_healthy  # ✅ Wait for MySQL ready
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root        # Root access
+      MYSQL_DATABASE: expense_tracker_database
+      MYSQL_USER: user                 # ✅ Your app user
+      MYSQL_PASSWORD: user             # ✅ Your app password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:                      # ✅ Health check
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  mysql_data: {}
